@@ -1,0 +1,707 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-sans,sans-serif);}
+.app{max-width:900px;margin:0 auto;padding:1.5rem;}
+.topbar{display:flex;align-items:center;gap:14px;padding-bottom:1.25rem;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:1.5rem;}
+.logo{width:44px;height:44px;background:#042C53;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo svg{width:24px;height:24px;fill:#B5D4F4;}
+.topbar-title{font-size:16px;font-weight:500;color:var(--color-text-primary);}
+.topbar-sub{font-size:12px;color:var(--color-text-secondary);}
+.nav-tabs{display:flex;gap:0;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1.5rem;background:var(--color-background-secondary);}
+.nav-tab{flex:1;padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;border-right:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);text-align:center;transition:background 0.15s;}
+.nav-tab:last-child{border-right:none;}
+.nav-tab.active{background:var(--color-background-primary);color:var(--color-text-primary);}
+.nav-tab:hover:not(.active){background:var(--color-background-primary);}
+.page{display:none;}
+.page.active{display:block;animation:fi 0.2s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1.25rem;}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';display:inline-block;width:3px;height:13px;background:#378ADD;border-radius:2px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+@media(max-width:580px){.g2,.g3{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field.full{grid-column:1/-1;}
+label{font-size:11px;font-weight:500;color:var(--color-text-secondary);letter-spacing:0.05em;text-transform:uppercase;}
+label .req{color:#D85A30;}
+input,select,textarea{font-size:13px;padding:7px 10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-primary);width:100%;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:#378ADD;box-shadow:0 0 0 2px rgba(55,138,221,0.12);}
+textarea{resize:vertical;min-height:72px;}
+hr{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:1rem 0;}
+
+.steps{display:flex;gap:0;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1.25rem;background:var(--color-background-secondary);}
+.step{flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;color:var(--color-text-tertiary);border-right:0.5px solid var(--color-border-tertiary);cursor:pointer;}
+.step:last-child{border-right:none;}
+.step.active{background:var(--color-background-primary);color:var(--color-text-primary);}
+.step.done{color:var(--color-text-success);}
+.sn{width:22px;height:22px;border-radius:50%;background:var(--color-border-tertiary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;}
+.step.active .sn{background:#042C53;color:#B5D4F4;}
+.step.done .sn{background:#1D9E75;color:white;}
+.fsec{display:none;}
+.fsec.vis{display:block;animation:fi 0.2s ease;}
+
+.upload-zone{border:1px dashed var(--color-border-secondary);border-radius:var(--border-radius-lg);padding:1.5rem;text-align:center;cursor:pointer;transition:border-color 0.15s,background 0.15s;}
+.upload-zone:hover,.upload-zone.drag{border-color:#378ADD;background:#E6F1FB11;}
+.upload-icon{width:36px;height:36px;background:var(--color-background-secondary);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+.upload-icon svg{width:18px;height:18px;stroke:var(--color-text-secondary);fill:none;}
+.upload-label{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px;}
+.upload-sub{font-size:11px;color:var(--color-text-secondary);}
+.doc-list{display:flex;flex-direction:column;gap:8px;margin-top:1rem;}
+.doc-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);}
+.doc-icon{width:28px;height:28px;background:#E6F1FB;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.doc-icon svg{width:14px;height:14px;stroke:#185FA5;fill:none;}
+.doc-name{font-size:13px;font-weight:500;color:var(--color-text-primary);flex:1;}
+.doc-size{font-size:11px;color:var(--color-text-secondary);}
+.doc-del{width:24px;height:24px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--color-text-secondary);}
+.doc-del:hover{background:var(--color-background-danger);color:var(--color-text-danger);}
+.doc-badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:500;}
+.badge-ok{background:#E1F5EE;color:#085041;}
+.badge-req{background:#FAEEDA;color:#633806;}
+.badge-warn{background:#FCEBEB;color:#791F1F;}
+
+.doc-req-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;}
+.doc-req-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);}
+.doc-req-item.uploaded{border-color:#5DCAA5;}
+.doc-req-name{font-size:13px;color:var(--color-text-primary);flex:1;}
+.doc-req-status{font-size:11px;color:var(--color-text-secondary);}
+.upload-btn-sm{font-size:11px;padding:4px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;cursor:pointer;color:var(--color-text-primary);white-space:nowrap;}
+.upload-btn-sm:hover{background:var(--color-background-secondary);}
+
+.btn-row{display:flex;justify-content:space-between;margin-top:1.5rem;gap:10px;}
+.btn{font-size:13px;font-weight:500;padding:9px 20px;border-radius:var(--border-radius-md);cursor:pointer;transition:all 0.15s;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);}
+.btn:hover{background:var(--color-background-secondary);}
+.btn-primary{background:#042C53;color:#B5D4F4;border-color:#042C53;}
+.btn-primary:hover{background:#185FA5;border-color:#185FA5;color:white;}
+.btn-success{background:#0F6E56;color:#9FE1CB;border-color:#0F6E56;}
+.btn-success:hover{background:#1D9E75;}
+
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;}
+@media(max-width:580px){.metrics{grid-template-columns:repeat(2,1fr);}}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;}
+.metric-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;}
+.metric-val{font-size:22px;font-weight:500;color:var(--color-text-primary);line-height:1;}
+.metric-sub{font-size:11px;color:var(--color-text-secondary);margin-top:3px;}
+
+.filter-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+.filter-btn{font-size:12px;padding:5px 14px;border-radius:99px;border:0.5px solid var(--color-border-secondary);background:transparent;cursor:pointer;color:var(--color-text-secondary);}
+.filter-btn.active{background:#042C53;color:#B5D4F4;border-color:#042C53;}
+
+.table-wrap{overflow-x:auto;}
+table.dash{width:100%;border-collapse:collapse;font-size:13px;}
+table.dash th{text-align:left;padding:8px 12px;font-size:11px;font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:0.04em;}
+table.dash td{padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:middle;}
+table.dash tr:last-child td{border-bottom:none;}
+table.dash tr:hover td{background:var(--color-background-secondary);}
+.pill{display:inline-flex;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;}
+.pill-blue{background:#E6F1FB;color:#0C447C;}
+.pill-green{background:#E1F5EE;color:#085041;}
+.pill-amber{background:#FAEEDA;color:#633806;}
+.pill-red{background:#FCEBEB;color:#791F1F;}
+.pill-gray{background:#F1EFE8;color:#444441;}
+
+.timeline{display:flex;flex-direction:column;gap:0;}
+.tl-item{display:flex;gap:14px;padding:10px 0;}
+.tl-dot-col{display:flex;flex-direction:column;align-items:center;width:16px;flex-shrink:0;}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.tl-line{flex:1;width:1px;background:var(--color-border-tertiary);margin-top:4px;}
+.tl-content{flex:1;padding-bottom:4px;}
+.tl-title{font-size:13px;font-weight:500;color:var(--color-text-primary);}
+.tl-time{font-size:11px;color:var(--color-text-secondary);}
+
+.progress-bar-wrap{background:var(--color-background-secondary);border-radius:99px;height:6px;overflow:hidden;}
+.progress-bar{height:100%;border-radius:99px;transition:width 0.3s;}
+
+.modal-bg{display:none;position:absolute;top:0;left:0;right:0;bottom:0;min-height:500px;background:rgba(0,0,0,0.35);border-radius:var(--border-radius-lg);align-items:center;justify-content:center;z-index:10;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.5rem;width:min(480px,90%);max-height:80vh;overflow-y:auto;}
+.modal-title{font-size:15px;font-weight:500;margin-bottom:1rem;color:var(--color-text-primary);}
+
+.reg-number{font-family:var(--font-mono,monospace);font-size:18px;font-weight:500;color:#0F6E56;background:#E1F5EE;padding:8px 20px;border-radius:var(--border-radius-md);display:inline-block;letter-spacing:2px;}
+
+.search-input{font-size:13px;padding:7px 10px 7px 32px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-primary);width:220px;outline:none;position:relative;}
+.search-wrap{position:relative;display:inline-block;}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--color-text-secondary);fill:none;pointer-events:none;}
+</style>
+
+<div class="app" id="app">
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Sistem pendaftaran sandar kapal dengan upload dokumen dan dashboard status</h2>
+
+<div class="topbar">
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><path d="M20 21H4l1-4h14l1 4zM3 17l1.5-6h15L21 17H3zM12 3L8 9h8l-4-6zM5 9h14v2H5V9z"/></svg>
+  </div>
+  <div>
+    <div class="topbar-title">Sistem Pendaftaran Sandar Kapal</div>
+    <div class="topbar-sub">Unit Pelayanan Kepelabuhanan — <span id="live-clock"></span></div>
+  </div>
+  <div style="margin-left:auto;">
+    <button class="btn btn-primary" onclick="switchPage('form')" style="font-size:12px;padding:7px 16px;">+ Pendaftaran Baru</button>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" id="ntab-dashboard" onclick="switchPage('dashboard')">Dashboard Status</div>
+  <div class="nav-tab" id="ntab-form" onclick="switchPage('form')">Formulir Pendaftaran</div>
+  <div class="nav-tab" id="ntab-dokumen" onclick="switchPage('dokumen')">Arsip Dokumen</div>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div class="page active" id="page-dashboard">
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Kapal Sandar</div>
+      <div class="metric-val" id="m-sandar">7</div>
+      <div class="metric-sub">Sedang berlabuh</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Menunggu Masuk</div>
+      <div class="metric-val" id="m-tunggu">3</div>
+      <div class="metric-sub">Antrian dermaga</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Selesai Hari Ini</div>
+      <div class="metric-val" id="m-selesai">4</div>
+      <div class="metric-sub">Sudah berangkat</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Dok. Pending</div>
+      <div class="metric-val" id="m-dokpend" style="color:#BA7517;">5</div>
+      <div class="metric-sub">Perlu dilengkapi</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Status kapal real-time</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <div class="filter-row" style="margin:0;">
+        <button class="filter-btn active" onclick="filterDash(this,'all')">Semua</button>
+        <button class="filter-btn" onclick="filterDash(this,'sandar')">Sandar</button>
+        <button class="filter-btn" onclick="filterDash(this,'tunggu')">Menunggu</button>
+        <button class="filter-btn" onclick="filterDash(this,'selesai')">Selesai</button>
+      </div>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input class="search-input" type="text" placeholder="Cari kapal..." oninput="searchDash(this.value)">
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="dash" id="dash-table">
+        <thead>
+          <tr>
+            <th>No. Reg</th>
+            <th>Nama Kapal</th>
+            <th>Dermaga</th>
+            <th>Tiba</th>
+            <th>Berangkat</th>
+            <th>Muatan</th>
+            <th>Dokumen</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="dash-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+    <div class="card">
+      <div class="card-title">Aktivitas terkini</div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Kapasitas dermaga</div>
+      <div id="dermaga-capacity"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FORM ==================== -->
+<div class="page" id="page-form">
+  <div class="steps">
+    <div class="step active" id="tab-1" onclick="gotoStep(1)"><div class="sn" id="sn1">1</div><span>Data Kapal</span></div>
+    <div class="step" id="tab-2" onclick="gotoStep(2)"><div class="sn" id="sn2">2</div><span>Muatan</span></div>
+    <div class="step" id="tab-3" onclick="gotoStep(3)"><div class="sn" id="sn3">3</div><span>Jadwal</span></div>
+    <div class="step" id="tab-4" onclick="gotoStep(4)"><div class="sn" id="sn4">4</div><span>Dokumen</span></div>
+    <div class="step" id="tab-5" onclick="gotoStep(5)"><div class="sn" id="sn5">5</div><span>Konfirmasi</span></div>
+  </div>
+
+  <div class="fsec vis" id="fsec-1">
+    <div class="card">
+      <div class="card-title">Identitas kapal</div>
+      <div class="g2">
+        <div class="field"><label>Nama Kapal <span class="req">*</span></label><input id="f-nama" placeholder="MV Nusantara Jaya"/></div>
+        <div class="field"><label>Nomor IMO</label><input id="f-imo" placeholder="IMO 0000000"/></div>
+        <div class="field"><label>Call Sign <span class="req">*</span></label><input id="f-call" placeholder="PKAB"/></div>
+        <div class="field"><label>Bendera <span class="req">*</span></label><select id="f-flag"><option value="">Pilih...</option><option>Indonesia</option><option>Singapura</option><option>Malaysia</option><option>Panama</option><option>Lainnya</option></select></div>
+      </div>
+      <hr>
+      <div class="card-title">Spesifikasi teknis</div>
+      <div class="g3">
+        <div class="field"><label>Jenis Kapal <span class="req">*</span></label><select id="f-jenis"><option value="">Pilih...</option><option>Kargo Umum</option><option>Tanker</option><option>Kontainer</option><option>Bulk Carrier</option><option>Penumpang</option><option>RoRo</option></select></div>
+        <div class="field"><label>GRT</label><input id="f-grt" type="number" placeholder="0"/></div>
+        <div class="field"><label>DWT</label><input id="f-dwt" type="number" placeholder="0"/></div>
+        <div class="field"><label>Panjang (m)</label><input id="f-loa" type="number" placeholder="0.0"/></div>
+        <div class="field"><label>Lebar (m)</label><input id="f-beam" type="number" placeholder="0.0"/></div>
+        <div class="field"><label>Sarat (m)</label><input id="f-draft" type="number" placeholder="0.0"/></div>
+      </div>
+      <hr>
+      <div class="card-title">Agen & nakhoda</div>
+      <div class="g2">
+        <div class="field"><label>Nama Agen <span class="req">*</span></label><input id="f-agen" placeholder="PT. ..."/></div>
+        <div class="field"><label>Email Agen <span class="req">*</span></label><input id="f-email" type="email" placeholder="agen@co.id"/></div>
+        <div class="field"><label>Nakhoda <span class="req">*</span></label><input id="f-nakhoda" placeholder="Nama lengkap"/></div>
+        <div class="field"><label>Telp Agen</label><input id="f-telp" type="tel" placeholder="+62..."/></div>
+      </div>
+    </div>
+    <div class="btn-row"><span></span><button class="btn btn-primary" onclick="nextF(1)">Lanjut →</button></div>
+  </div>
+
+  <div class="fsec" id="fsec-2">
+    <div class="card">
+      <div class="card-title">Informasi pelayaran</div>
+      <div class="g2">
+        <div class="field"><label>Pelabuhan Asal <span class="req">*</span></label><input id="f-asal" placeholder="Nama pelabuhan"/></div>
+        <div class="field"><label>Tujuan Berikutnya</label><input id="f-tujuan" placeholder="Nama pelabuhan"/></div>
+        <div class="field"><label>Jumlah Crew <span class="req">*</span></label><input id="f-crew" type="number" placeholder="0"/></div>
+        <div class="field"><label>Jenis Muatan <span class="req">*</span></label><select id="f-muatan"><option value="">Pilih...</option><option>Kontainer</option><option>Curah Kering</option><option>Curah Cair</option><option>Kargo Umum</option><option>RoRo</option><option>B3</option><option>Kosong</option></select></div>
+        <div class="field full"><label>Volume / Berat</label><input id="f-vol" placeholder="Contoh: 5.000 MT atau 200 TEU"/></div>
+        <div class="field full"><label>Keterangan muatan</label><textarea id="f-kdesc" placeholder="Catatan muatan..."></textarea></div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn" onclick="gotoStep(1)">← Kembali</button><button class="btn btn-primary" onclick="nextF(2)">Lanjut →</button></div>
+  </div>
+
+  <div class="fsec" id="fsec-3">
+    <div class="card">
+      <div class="card-title">Rencana sandar</div>
+      <div class="g2">
+        <div class="field"><label>Tanggal Tiba <span class="req">*</span></label><input id="f-tiba" type="date"/></div>
+        <div class="field"><label>Jam Tiba <span class="req">*</span></label><input id="f-jtiba" type="time"/></div>
+        <div class="field"><label>Tanggal Berangkat <span class="req">*</span></label><input id="f-brgkt" type="date"/></div>
+        <div class="field"><label>Jam Berangkat</label><input id="f-jbrgkt" type="time"/></div>
+        <div class="field"><label>Dermaga</label><select id="f-dermaga"><option value="">Sesuai ketersediaan</option><option>Dermaga 1 — Kargo</option><option>Dermaga 2 — Kontainer</option><option>Dermaga 3 — Tanker</option><option>Dermaga 4 — Curah</option><option>Dermaga 5 — RoRo</option></select></div>
+        <div class="field"><label>Sisi Tambat</label><select id="f-sisi"><option value="">Pilih...</option><option>Kiri (Port)</option><option>Kanan (Starboard)</option><option>Buritan</option></select></div>
+        <div class="field"><label>Pandu Masuk</label><select id="f-pandu"><option>Diperlukan</option><option>Tidak diperlukan</option><option>Wajib</option></select></div>
+        <div class="field"><label>Kapal Tunda</label><select id="f-tunda"><option>1 unit</option><option>2 unit</option><option>Tidak diperlukan</option></select></div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn" onclick="gotoStep(2)">← Kembali</button><button class="btn btn-primary" onclick="nextF(3)">Lanjut →</button></div>
+  </div>
+
+  <div class="fsec" id="fsec-4">
+    <div class="card">
+      <div class="card-title">Persyaratan dokumen</div>
+      <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem;">Unggah dokumen wajib sebelum kapal mendapat izin sandar. Format yang diterima: PDF, JPG, PNG (maks. 10 MB per file).</p>
+      <div class="doc-req-list" id="doc-req-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Unggah dokumen tambahan</div>
+      <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="upload-label">Klik atau seret file ke sini</div>
+        <div class="upload-sub">PDF, JPG, PNG — Maks. 10 MB per file</div>
+      </div>
+      <input type="file" id="file-input" multiple accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleFiles(this.files)">
+      <div class="doc-list" id="uploaded-list"></div>
+    </div>
+    <div class="btn-row"><button class="btn" onclick="gotoStep(3)">← Kembali</button><button class="btn btn-primary" onclick="nextF(4)">Tinjau & Konfirmasi →</button></div>
+  </div>
+
+  <div class="fsec" id="fsec-5">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="card-title" style="margin:0;">Ringkasan pendaftaran</div>
+        <span class="pill pill-amber">Belum dikonfirmasi</span>
+      </div>
+      <div id="summary-content"></div>
+    </div>
+    <div style="background:#E6F1FB;border:0.5px solid #B5D4F4;border-radius:var(--border-radius-md);padding:10px 14px;margin-bottom:1.25rem;font-size:12px;color:#0C447C;">
+      Dengan mengirimkan formulir ini, Anda menyatakan bahwa seluruh data dan dokumen yang diunggah adalah benar dan sah.
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="gotoStep(4)">← Kembali</button>
+      <button class="btn btn-success" onclick="submitReg()">Kirim Pendaftaran ✓</button>
+    </div>
+  </div>
+
+  <div class="fsec" id="fsec-6">
+    <div class="card" style="text-align:center;padding:3rem 2rem;">
+      <div style="width:56px;height:56px;background:#E1F5EE;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 13L9 17L19 7" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div style="font-size:17px;font-weight:500;margin-bottom:6px;">Pendaftaran Berhasil Diterima</div>
+      <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem;">Nomor registrasi sandar kapal:</div>
+      <div class="reg-number" id="reg-number-out">—</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);margin:1rem auto;max-width:340px;">Simpan nomor ini untuk komunikasi dengan petugas. Status dapat dipantau di tab Dashboard.</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="switchPage('dashboard')">Lihat Dashboard</button>
+        <button class="btn" onclick="resetFormFn()">Daftarkan Kapal Lain</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DOKUMEN ==================== -->
+<div class="page" id="page-dokumen">
+  <div class="card">
+    <div class="card-title">Arsip dokumen kapal</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <div class="filter-row" style="margin:0;">
+        <button class="filter-btn active" onclick="filterDoks(this,'all')">Semua</button>
+        <button class="filter-btn" onclick="filterDoks(this,'lengkap')">Lengkap</button>
+        <button class="filter-btn" onclick="filterDoks(this,'pending')">Kurang</button>
+      </div>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input class="search-input" type="text" placeholder="Cari nama kapal..." oninput="searchDoks(this.value)">
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="dash" id="doks-table">
+        <thead><tr><th>No. Reg</th><th>Nama Kapal</th><th>SSKK</th><th>Manifes</th><th>Crew List</th><th>Surat Sehat</th><th>Customs</th><th>Status</th></tr></thead>
+        <tbody id="doks-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Unggah dokumen untuk kapal terdaftar</div>
+    <div class="g2">
+      <div class="field"><label>Pilih No. Registrasi</label><select id="doks-reg-sel"><option value="">Pilih kapal...</option></select></div>
+      <div class="field"><label>Jenis Dokumen</label><select id="doks-jenis"><option>SSKK</option><option>Manifes Muatan</option><option>Crew List</option><option>Surat Sehat</option><option>Customs Declaration</option><option>Lainnya</option></select></div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="upload-zone" onclick="document.getElementById('doks-file').click()">
+        <div class="upload-icon"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+        <div class="upload-label">Klik untuk unggah dokumen</div>
+        <div class="upload-sub">PDF, JPG, PNG — Maks. 10 MB</div>
+      </div>
+      <input type="file" id="doks-file" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleDoksUpload(this)">
+    </div>
+    <div id="doks-uploaded" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div style="position:relative;">
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Detail Kapal</div>
+    <div id="modal-body"></div>
+    <div style="margin-top:1.25rem;text-align:right;">
+      <button class="btn" onclick="closeModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+
+<script>
+const shipData = [
+  {reg:'PSK-A1B2C3D4',nama:'MV Nusantara Jaya',dermaga:'Dermaga 2',tiba:'14/04 06:30',brgkt:'15/04 14:00',muatan:'Kontainer',status:'sandar',dok:{sskk:true,manifes:true,crew:true,sehat:false,customs:false},agen:'PT Bahari Nusantara'},
+  {reg:'PSK-E5F6G7H8',nama:'KM Sinar Laut',dermaga:'Dermaga 1',tiba:'14/04 08:15',brgkt:'14/04 20:00',muatan:'Kargo Umum',status:'sandar',dok:{sskk:true,manifes:true,crew:true,sehat:true,customs:true},agen:'PT Pelayaran Timur'},
+  {reg:'PSK-I9J0K1L2',nama:'MT Pertamina 3',dermaga:'Dermaga 3',tiba:'14/04 10:00',brgkt:'16/04 08:00',muatan:'Curah Cair',status:'sandar',dok:{sskk:true,manifes:false,crew:true,sehat:true,customs:false},agen:'PT Energy Shipping'},
+  {reg:'PSK-M3N4O5P6',nama:'MV Bintang Timur',dermaga:'Menunggu',tiba:'14/04 13:00',brgkt:'15/04 18:00',muatan:'Curah Kering',status:'tunggu',dok:{sskk:true,manifes:false,crew:false,sehat:false,customs:false},agen:'CV Bahari Jaya'},
+  {reg:'PSK-Q7R8S9T0',nama:'KM Harapan Baru',dermaga:'Menunggu',tiba:'14/04 14:30',brgkt:'15/04 22:00',muatan:'Kargo Umum',status:'tunggu',dok:{sskk:false,manifes:false,crew:false,sehat:false,customs:false},agen:'PT Trans Laut'},
+  {reg:'PSK-U1V2W3X4',nama:'MV Elang Laut',dermaga:'Dermaga 4',tiba:'13/04 22:00',brgkt:'14/04 10:30',muatan:'Bulk',status:'selesai',dok:{sskk:true,manifes:true,crew:true,sehat:true,customs:true},agen:'PT Elang Maritime'},
+  {reg:'PSK-Y5Z6A7B8',nama:'KM Permata Biru',dermaga:'Dermaga 5',tiba:'14/04 07:00',brgkt:'14/04 19:00',muatan:'RoRo',status:'sandar',dok:{sskk:true,manifes:true,crew:false,sehat:true,customs:true},agen:'PT Permata Lines'},
+  {reg:'PSK-C9D0E1F2',nama:'MT Global One',dermaga:'Menunggu',tiba:'14/04 16:00',brgkt:'17/04 08:00',muatan:'Tanker',status:'tunggu',dok:{sskk:true,manifes:true,crew:true,sehat:true,customs:false},agen:'Global Shipping Co'},
+];
+
+const DOCS = ['SSKK','Manifes','Crew List','Surat Sehat','Customs'];
+const DOC_KEYS = ['sskk','manifes','crew','sehat','customs'];
+
+const tlData = [
+  {text:'MV Nusantara Jaya tiba di Dermaga 2',time:'06:30',color:'#1D9E75'},
+  {text:'KM Sinar Laut selesai bongkar muat',time:'07:45',color:'#378ADD'},
+  {text:'MT Pertamina 3 mulai sandar Dermaga 3',time:'10:05',color:'#1D9E75'},
+  {text:'MV Bintang Timur masuk antrian sandar',time:'11:30',color:'#EF9F27'},
+  {text:'MV Elang Laut berangkat dari Dermaga 4',time:'10:28',color:'#888780'},
+  {text:'PSK-Q7R8S9T0 dokumen belum lengkap',time:'12:00',color:'#E24B4A'},
+];
+
+const dermagaData = [
+  {name:'Dermaga 1',total:3,used:1},
+  {name:'Dermaga 2',total:2,used:2},
+  {name:'Dermaga 3',total:2,used:1},
+  {name:'Dermaga 4',total:3,used:0},
+  {name:'Dermaga 5',total:2,used:1},
+];
+
+const reqDocs = [
+  {key:'sskk',label:'SSKK (Surat Persetujuan Kegiatan Kepelabuhanan)',required:true},
+  {key:'manifes',label:'Manifes Muatan / Cargo Manifest',required:true},
+  {key:'crew',label:'Crew List (Daftar Awak Kapal)',required:true},
+  {key:'sehat',label:'Surat Keterangan Kesehatan (Health Declaration)',required:false},
+  {key:'customs',label:'Customs Declaration / BC 1.1',required:false},
+];
+
+let uploadedDocs = {};
+let currentStep = 1;
+let allShips = [...shipData];
+let dashFilter = 'all';
+let doksFilter = 'all';
+
+function updateClock(){
+  const n=new Date();
+  const p=x=>String(x).padStart(2,'0');
+  document.getElementById('live-clock').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds())+' WIB';
+}
+setInterval(updateClock,1000);updateClock();
+
+function switchPage(p){
+  ['dashboard','form','dokumen'].forEach(x=>{
+    document.getElementById('page-'+x).classList.remove('active');
+    document.getElementById('ntab-'+x).classList.remove('active');
+  });
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('ntab-'+p).classList.add('active');
+  if(p==='dashboard') renderDash();
+  if(p==='dokumen') renderDoks();
+}
+
+function statusPill(s){
+  if(s==='sandar') return '<span class="pill pill-green">Sandar</span>';
+  if(s==='tunggu') return '<span class="pill pill-amber">Menunggu</span>';
+  if(s==='selesai') return '<span class="pill pill-gray">Selesai</span>';
+  return '<span class="pill pill-blue">'+s+'</span>';
+}
+
+function dokStatus(dok){
+  const total=DOC_KEYS.length;
+  const ok=DOC_KEYS.filter(k=>dok[k]).length;
+  if(ok===total) return '<span class="pill pill-green">Lengkap</span>';
+  return '<span class="pill pill-amber">'+ok+'/'+total+'</span>';
+}
+
+function renderDash(filter,query){
+  filter=filter||dashFilter; query=query||'';
+  let data=allShips;
+  if(filter!=='all') data=data.filter(r=>r.status===filter);
+  if(query) data=data.filter(r=>r.nama.toLowerCase().includes(query.toLowerCase())||r.reg.toLowerCase().includes(query.toLowerCase()));
+  const tb=document.getElementById('dash-tbody');
+  tb.innerHTML=data.map(r=>`<tr>
+    <td style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary);">${r.reg}</td>
+    <td style="font-weight:500;">${r.nama}</td>
+    <td>${r.dermaga}</td>
+    <td>${r.tiba}</td>
+    <td>${r.brgkt}</td>
+    <td><span class="pill pill-blue" style="font-size:10px;">${r.muatan}</span></td>
+    <td>${dokStatus(r.dok)}</td>
+    <td>${statusPill(r.status)}</td>
+    <td><button class="upload-btn-sm" onclick="showDetail('${r.reg}')">Detail</button></td>
+  </tr>`).join('');
+
+  const tl=document.getElementById('timeline');
+  tl.innerHTML=tlData.map((t,i)=>`<div class="tl-item">
+    <div class="tl-dot-col"><div class="tl-dot" style="background:${t.color};"></div>${i<tlData.length-1?'<div class="tl-line"></div>':''}</div>
+    <div class="tl-content"><div class="tl-title">${t.text}</div><div class="tl-time">${t.time} WIB hari ini</div></div>
+  </div>`).join('');
+
+  const dc=document.getElementById('dermaga-capacity');
+  dc.innerHTML=dermagaData.map(d=>{
+    const pct=Math.round(d.used/d.total*100);
+    const color=pct>=100?'#E24B4A':pct>=50?'#EF9F27':'#1D9E75';
+    return `<div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span style="font-weight:500;">${d.name}</span>
+        <span style="color:var(--color-text-secondary);">${d.used}/${d.total} terpakai</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%;background:${color};"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function filterDash(btn,f){
+  dashFilter=f;
+  document.querySelectorAll('#page-dashboard .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDash(f);
+}
+
+function searchDash(q){ renderDash(dashFilter,q); }
+
+function showDetail(reg){
+  const r=allShips.find(x=>x.reg===reg);
+  if(!r) return;
+  document.getElementById('modal-title').textContent='Detail — '+r.nama;
+  const rows=[['No. Registrasi',r.reg],['Dermaga',r.dermaga],['Agen',r.agen],['Tiba',r.tiba],['Berangkat',r.brgkt],['Muatan',r.muatan],['Status',r.status]];
+  const dokRows=DOC_KEYS.map((k,i)=>[DOCS[i],r.dok[k]?'<span class="pill pill-green">Tersedia</span>':'<span class="pill pill-amber">Belum ada</span>']);
+  document.getElementById('modal-body').innerHTML=`
+    <table style="width:100%;font-size:13px;border-collapse:collapse;">
+      ${rows.map(([k,v])=>`<tr><td style="color:var(--color-text-secondary);padding:6px 0;width:45%;">${k}</td><td style="padding:6px 0;">${v}</td></tr>`).join('')}
+    </table>
+    <div style="margin-top:12px;font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">Status Dokumen</div>
+    <table style="width:100%;font-size:12px;border-collapse:collapse;">
+      ${dokRows.map(([k,v])=>`<tr><td style="color:var(--color-text-secondary);padding:5px 0;width:60%;">${k}</td><td>${v}</td></tr>`).join('')}
+    </table>`;
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('modal-bg').classList.remove('open'); }
+
+function renderDoks(filter,query){
+  filter=filter||doksFilter; query=query||'';
+  let data=allShips;
+  if(filter==='lengkap') data=data.filter(r=>DOC_KEYS.every(k=>r.dok[k]));
+  if(filter==='pending') data=data.filter(r=>!DOC_KEYS.every(k=>r.dok[k]));
+  if(query) data=data.filter(r=>r.nama.toLowerCase().includes(query.toLowerCase()));
+  const tb=document.getElementById('doks-tbody');
+  tb.innerHTML=data.map(r=>`<tr>
+    <td style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary);">${r.reg}</td>
+    <td style="font-weight:500;">${r.nama}</td>
+    ${DOC_KEYS.map(k=>`<td>${r.dok[k]?'<span class="pill pill-green" style="font-size:10px;">Ada</span>':'<span class="pill pill-amber" style="font-size:10px;">Belum</span>'}</td>`).join('')}
+    <td>${dokStatus(r.dok)}</td>
+  </tr>`).join('');
+
+  const sel=document.getElementById('doks-reg-sel');
+  sel.innerHTML='<option value="">Pilih kapal...</option>'+allShips.map(r=>`<option value="${r.reg}">${r.reg} — ${r.nama}</option>`).join('');
+}
+
+function filterDoks(btn,f){
+  doksFilter=f;
+  document.querySelectorAll('#page-dokumen .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDoks(f);
+}
+
+function searchDoks(q){ renderDoks(doksFilter,q); }
+
+function handleDoksUpload(input){
+  const file=input.files[0]; if(!file) return;
+  const jenis=document.getElementById('doks-jenis').value;
+  const reg=document.getElementById('doks-reg-sel').value;
+  const out=document.getElementById('doks-uploaded');
+  out.innerHTML=`<div class="doc-item"><div class="doc-icon"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="doc-name">${jenis} — ${file.name}</div><span class="doc-badge badge-ok">Diunggah</span></div>`;
+  if(reg){
+    const ship=allShips.find(x=>x.reg===reg);
+    const keyMap={SSKK:'sskk','Manifes Muatan':'manifes','Crew List':'crew','Surat Sehat':'sehat','Customs Declaration':'customs'};
+    const k=keyMap[jenis];
+    if(ship&&k) ship.dok[k]=true;
+  }
+  input.value='';
+}
+
+function buildDocReqList(){
+  const el=document.getElementById('doc-req-list');
+  el.innerHTML=reqDocs.map(d=>`<div class="doc-req-item ${uploadedDocs[d.key]?'uploaded':''}" id="dritem-${d.key}">
+    <div class="doc-req-name">${d.label}</div>
+    <span class="doc-badge ${d.required?'badge-req':'badge-ok'}" style="white-space:nowrap;">${d.required?'Wajib':'Opsional'}</span>
+    <div class="doc-req-status" id="drstat-${d.key}">${uploadedDocs[d.key]?'<span class="pill pill-green" style="font-size:10px;">Terunggah</span>':'<span style="font-size:11px;color:var(--color-text-secondary);">Belum</span>'}</div>
+    <button class="upload-btn-sm" onclick="triggerReqUpload('${d.key}')">Unggah</button>
+    <input type="file" id="req-input-${d.key}" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleReqFile(this,'${d.key}')">
+  </div>`).join('');
+}
+
+function triggerReqUpload(k){ document.getElementById('req-input-'+k).click(); }
+
+function handleReqFile(input,key){
+  if(!input.files[0]) return;
+  const fname=input.files[0].name;
+  uploadedDocs[key]=fname;
+  const item=document.getElementById('dritem-'+key);
+  if(item) item.classList.add('uploaded');
+  const stat=document.getElementById('drstat-'+key);
+  if(stat) stat.innerHTML='<span class="pill pill-green" style="font-size:10px;">Terunggah</span>';
+  addToList(fname);
+}
+
+function addToList(fname){
+  const list=document.getElementById('uploaded-list');
+  const div=document.createElement('div');
+  div.className='doc-item';
+  div.innerHTML=`<div class="doc-icon"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="doc-name">${fname}</div><span class="doc-badge badge-ok">Tersimpan</span>`;
+  list.appendChild(div);
+}
+
+function handleFiles(files){
+  Array.from(files).forEach(f=>addToList(f.name));
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+}
+
+let formStep=1;
+function gotoStep(n){
+  document.getElementById('fsec-'+formStep).classList.remove('vis');
+  document.getElementById('tab-'+formStep).classList.remove('active');
+  formStep=n;
+  document.getElementById('fsec-'+formStep).classList.add('vis');
+  document.getElementById('tab-'+formStep).classList.add('active');
+}
+
+function nextF(from){
+  document.getElementById('tab-'+from).classList.add('done');
+  document.getElementById('sn'+from).textContent='✓';
+  if(from===4) buildSummary();
+  gotoStep(from+1);
+}
+
+function buildDocReqListOnStep(){
+  buildDocReqList();
+}
+
+function v(id){ const el=document.getElementById(id); return el?(el.value||'—'):'—'; }
+
+function buildSummary(){
+  const rows=[
+    ['Nama Kapal',v('f-nama')],['Call Sign',v('f-call')],['Bendera',v('f-flag')],
+    ['Jenis Kapal',v('f-jenis')],['GRT/DWT',v('f-grt')+' / '+v('f-dwt')],
+    ['Agen',v('f-agen')],['Email',v('f-email')],['Nakhoda',v('f-nakhoda')],
+    ['Asal',v('f-asal')],['Crew',v('f-crew')],['Muatan',v('f-muatan')],
+    ['Tiba',v('f-tiba')+' '+v('f-jtiba')],['Berangkat',v('f-brgkt')+' '+v('f-jbrgkt')],
+    ['Dermaga',v('f-dermaga')],['Pandu',v('f-pandu')],['Tunda',v('f-tunda')],
+    ['Dok terunggah',Object.keys(uploadedDocs).length+' file'],
+  ];
+  document.getElementById('summary-content').innerHTML=`<table style="width:100%;font-size:13px;border-collapse:collapse;">${rows.map(([k,vl])=>`<tr><td style="color:var(--color-text-secondary);padding:6px 0;width:40%;">${k}</td><td style="padding:6px 0;">${vl}</td></tr>`).join('')}</table>`;
+}
+
+function submitReg(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='PSK-';
+  for(let i=0;i<8;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById('reg-number-out').textContent=code;
+  const newShip={
+    reg:code, nama:v('f-nama')||'Kapal Baru', dermaga:v('f-dermaga')||'Menunggu',
+    tiba:'14/04', brgkt:v('f-brgkt')||'—', muatan:v('f-muatan')||'—',
+    status:'tunggu', dok:{sskk:!!uploadedDocs.sskk,manifes:!!uploadedDocs.manifes,crew:!!uploadedDocs.crew,sehat:!!uploadedDocs.sehat,customs:!!uploadedDocs.customs},
+    agen:v('f-agen')
+  };
+  allShips.unshift(newShip);
+  document.getElementById('tab-5').classList.add('done');
+  document.getElementById('sn5').textContent='✓';
+  document.getElementById('fsec-5').classList.remove('vis');
+  document.getElementById('fsec-6').classList.add('vis');
+}
+
+function resetFormFn(){
+  formStep=1;
+  for(let i=1;i<=5;i++){
+    document.getElementById('tab-'+i).classList.remove('done','active');
+    document.getElementById('sn'+i).textContent=i;
+    document.getElementById('fsec-'+i).classList.remove('vis');
+  }
+  document.getElementById('fsec-6').classList.remove('vis');
+  document.getElementById('tab-1').classList.add('active');
+  document.getElementById('fsec-1').classList.add('vis');
+  uploadedDocs={};
+  document.getElementById('uploaded-list').innerHTML='';
+}
+
+document.getElementById('tab-4').addEventListener('click',()=>{ if(formStep>=4) buildDocReqListOnStep(); });
+document.querySelector('[onclick="nextF(3)"]').addEventListener('click',buildDocReqListOnStep,{once:false});
+const origNextF=window.nextF;
+window.nextF=function(from){ if(from===3) buildDocReqList(); origNextF(from); };
+
+renderDash();
+renderDoks();
+</script>
